@@ -38,7 +38,7 @@ grid = {
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
 
-INPUT_PATH = "D:\\GEModels\\geData.csv"*
+INPUT_PATH = "D:\\GEModels\\geData.csv"
 
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]

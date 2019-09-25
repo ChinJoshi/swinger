@@ -2,7 +2,9 @@ import csv
 import os
 from glob import glob
 
-subfolders = [f.path for f in os.scandir("E:\\GEModels") if f.is_dir() ]
+INPUT_PATH = "E:\\GEModels"
+
+subfolders = [f.path for f in os.scandir(INPUT_PATH) if f.is_dir() ]
 lossDict = []
 for folder in subfolders:
     logFP = glob(folder+"\\*.log")
