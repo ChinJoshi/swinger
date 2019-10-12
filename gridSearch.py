@@ -102,7 +102,7 @@ y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
 
 print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
 
-dropout = 0.6
+dropout = 0.6   #0.3,0.4,0.5,0.6
 for layer_1_neurons in grid["1LSTM"]:
     for layer_3_neurons in grid["3LSTM"]:
         for layer_4_dropout in grid["4Dropout"]:
