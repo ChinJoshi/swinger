@@ -3,7 +3,8 @@ import json
 import requests
 
 apiKey = "O4KE97KEIMO74MNW"
-symbol = "MSFT"
+symbol = "FCX"
+filepath = symbol+".csv"
 
 rsiTimePeriod = str(14)
 smaTimePeriod = str(50)
@@ -23,7 +24,7 @@ SMA_res = requests.get("https://www.alphavantage.co/query?function=SMA&symbol="+
 EMA_res = requests.get("https://www.alphavantage.co/query?function=EMA&symbol="+symbol+"&interval=daily&time_period="+emaTimePeriod+"&series_type="+emaSeriesType+"&apikey="+apiKey+"&datatype=csv")
 BBANDS_res = requests.get("https://www.alphavantage.co/query?function=BBANDS&symbol="+symbol+"&interval=daily&time_period="+bbandsTimePeriod+"&series_type="+bbandsSeriesType+"&nbdevup="+nbdevup+"&nbdevdn="+nbdevdn+"&apikey="+apiKey+"&datatype=csv")
 
-csvfile = open(symbol+".csv","w",newline='')
+csvfile = open(filepath,"w",newline='')
 
 OHLCstringlist = (OHLC_res.text).split("\r\n")
 RSIstringlist = (RSI_res.text).split("\r\n")
