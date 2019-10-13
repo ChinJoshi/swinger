@@ -1,10 +1,16 @@
 import csv
 import json
 import requests
+import platform
 
 apiKey = "O4KE97KEIMO74MNW"
 symbol = "FCX"
-filepath = symbol+".csv"
+filepath = None
+if platform.system()=='Linux':
+    filepath = "data/"+symbol+".csv"
+else:
+    filepath = "data\\"+symbol+".csv"
+
 
 rsiTimePeriod = str(14)
 smaTimePeriod = str(50)
