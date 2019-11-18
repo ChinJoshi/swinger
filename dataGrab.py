@@ -4,7 +4,7 @@ import requests
 import platform
 
 apiKey = "O4KE97KEIMO74MNW"
-symbol = "FCX"
+symbol = "XLC"
 filepath = None
 if platform.system()=='Linux':
     filepath = "data/"+symbol+".csv"
@@ -55,3 +55,17 @@ count = 0   #first index is the most recent data point
 while count<(len(OHLCstringlist)-int(smaTimePeriod)-1):
     csvwriter.writerow(OHLCstringlist[count].split(",")+[RSIstringlist[count].split(",")[1]]+[SMAstringlist[count].split(",")[1]]+[EMAstringlist[count].split(",")[1]]+BBANDSstringlist[count].split(",")[1:])
     count +=1
+
+"""
+Communication Services (XLC)
+Consumer Discretionary (XLY)
+Consumer Staples (XLP)
+Energy (XLE)
+Financials (XLF)
+Health Care (XLV)
+Industrials (XLI)
+Materials (XLB)
+Real Estate (XLRE)
+Technology (XLK)
+Utilities (XLU)
+"""

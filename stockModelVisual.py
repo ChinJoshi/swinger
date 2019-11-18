@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 import time
-import pandas as pd 
+import pandas as pd
 import csv
 import tensorflow
 from tensorflow import keras
@@ -16,17 +16,15 @@ from sklearn.metrics import mean_squared_error
 
 params = {
     "batch_size": 256,  # 20<16<10, 25 was a bust
-    "epochs": 300,
+    "epochs": 1000,
     "lr": 0.00010000,
     "time_steps": 60
 }
 
-INPUT_LOG_PATH = "E:\\GEModels\\GE_Model_B256_T60_L1N60_L2D0.3_L3N120_L4D0.5\\GE_Model_B256_T60_L1N60_L2D0.3_L3N120_L4D0.5.log"
-INPUT_PATH = "E:\\GEModels"
-DATA_FILE = "geData.csv"
-#MODEL_NAME = "GE_Model_B" + str(params["batch_size"]) + "_T" + str(params["time_steps"])+ "_CUDA"
-MODEL_NAME = "GE_Model_B256_T60_L1N60_L2D0.3_L3N120_L4D0.5.470-0.00025"
-OUTPUT_PATH = "E:\\GEModels\\GE_Model_B256_T60_L1N60_L2D0.3_L3N120_L4D0.5\\"
+INPUT_LOG_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.log"
+DATA_FILE = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\data\\GE.csv"
+MODEL_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.480-0.00080.hdf5"
+
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
 stime = time.time()
@@ -87,15 +85,14 @@ def build_timeseries(mat, y_col_index):
 
 
 stime = time.time()
-print(os.listdir(INPUT_PATH))
-df_ge = pd.read_csv(INPUT_PATH+"\\"+DATA_FILE, engine='python')
+df_ge = pd.read_csv(DATA_FILE, engine='python')
 print(df_ge.shape)
 print(df_ge.columns)
 print(df_ge.head(5))
 
 #df_ge = process_dataframe(df_ge)
 print(df_ge.dtypes)
-train_cols = ["Open","High","Low","Close","Volume"]
+train_cols = ['open','high','low','close','adjusted_close','volume']
 df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)
 print("Train--Test size", len(df_train), len(df_test))
 
@@ -125,7 +122,7 @@ y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
 
 print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
 
-model = keras.models.load_model(os.path.join(OUTPUT_PATH, MODEL_NAME+".hdf5")) 
+model = keras.models.load_model(MODEL_PATH) 
 # model.evaluate(x_test_t, y_test_t, batch_size=BATCH_SIZE
 y_pred = model.predict(trim_dataset(x_test_t, BATCH_SIZE), batch_size=BATCH_SIZE)
 y_pred = y_pred.flatten()

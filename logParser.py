@@ -2,7 +2,7 @@ import os
 import csv
 from matplotlib import pyplot as plt
 
-INPUT_LOG_PATH = "D:\\GEModels\\GE_Model_B256_T60_CUDA\\GE_Model_B256_T60_CUDA.log"
+INPUT_LOG_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N500_L2D0.3_L3N500_L4D0.4\\GE_Model_B256_T60_L1N500_L2D0.3_L3N500_L4D0.4.log"
 loss = []
 val_loss =[]
 with open(INPUT_LOG_PATH) as logFile:

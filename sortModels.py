@@ -3,6 +3,8 @@ import os
 from glob import glob
 
 INPUT_PATH = "E:\\GEModels"
+isCSV = False
+symbol = "GE"
 
 subfolders = [f.path for f in os.scandir(INPUT_PATH) if f.is_dir() ]
 lossDict = []
@@ -18,4 +20,11 @@ for folder in subfolders:
         lossDict.append([valLoss[0],logFP[0]])
 
 lossDict.sort()
-print(lossDict[0:10])    
+
+csvfile = open(symbol+"modelSort.csv","w",newline='')
+csvwriter = csv.writer(csvfile,delimiter=",")
+
+for row in lossDict:
+    print(row)
+    if isCSV:
+        csvwriter.writerow(row)
