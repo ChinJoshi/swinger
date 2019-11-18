@@ -22,8 +22,8 @@ params = {
 }
 
 INPUT_LOG_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.log"
-DATA_FILE = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\data\\GE.csv"
-MODEL_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.480-0.00080.hdf5"
+DATA_FILE = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\geData.csv"
+MODEL_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.290-0.00039.hdf5"
 
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
@@ -92,7 +92,7 @@ print(df_ge.head(5))
 
 #df_ge = process_dataframe(df_ge)
 print(df_ge.dtypes)
-train_cols = ['open','high','low','close','adjusted_close','volume']
+train_cols = ['Open','High','Low','Close','Volume']
 df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)
 print("Train--Test size", len(df_train), len(df_test))
 
