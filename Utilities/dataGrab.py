@@ -4,7 +4,7 @@ import requests
 import platform
 
 apiKey = "O4KE97KEIMO74MNW"
-symbol = "XLC"
+symbol = "GE"
 filepath = None
 if platform.system()=='Linux':
     filepath = "data/"+symbol+".csv"

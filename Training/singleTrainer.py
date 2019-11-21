@@ -1,5 +1,3 @@
-#Verifying the ability to function with reversed data
-
 import numpy as np
 import os
 import sys
@@ -15,7 +13,7 @@ from sklearn.metrics import mean_squared_error
 
 params = {
     "batch_size": 256,
-    "epochs": 500,
+    "epochs": 1000,
     "lr": 0.00010000,
     "time_steps": 60
 }
@@ -99,9 +97,9 @@ y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
 
 print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
 
-layer_1_neurons = 100
+layer_1_neurons = 500
 layer_2_dropout = 0.3
-layer_3_neurons = 100
+layer_3_neurons = 500
 layer_4_dropout = 0.4
 layer_5_denseNeurons = 20
 

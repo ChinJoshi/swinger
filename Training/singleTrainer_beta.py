@@ -1,3 +1,5 @@
+#Verifying the ability to function with reversed data
+
 import numpy as np
 import os
 import sys
@@ -13,15 +15,15 @@ from sklearn.metrics import mean_squared_error
 
 params = {
     "batch_size": 256,
-    "epochs": 500,
+    "epochs": 10000,
     "lr": 0.00010000,
     "time_steps": 60
 }
 
-train_cols = ['Open','High','Low','Close','Volume']
+train_cols = ['open','high','low','close','volume']
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
-DATA_PATH = "geData.csv"
+DATA_PATH = "data//GE.csv"
 symbol = "GE"
 
 def print_time(text, stime):
@@ -32,7 +34,11 @@ def print_time(text, stime):
 def trim_dataset(mat,batch_size):
     no_of_rows_drop = mat.shape[0]%batch_size   #determine how many extra rows you have that don't fit into a multiple of batch
     if no_of_rows_drop > 0:
-        return mat[:-no_of_rows_drop]   #cut that bitch off
+        print("Rows to drop: "+ str(no_of_rows_drop))
+        tempMat = mat[:-no_of_rows_drop]        #cuts off last rows, so it should work (the most recent data is cut off so should be fixed)
+        print("Mat shape after cut: " + str(tempMat.shape[0]))
+        return tempMat
+        #return mat[:-no_of_rows_drop]   #cut that bitch off
     else:
         return mat
 
@@ -67,7 +73,12 @@ print(df_ge.columns)
 print(df_ge.head(5))
 print(df_ge.dtypes)
 
-df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)   #split the data into a traing set and validation set (kind of retarded because chops off the most recent data aka braindead)
+print("\n########After Reversal########\n")
+
+df_ge = df_ge.iloc[::-1]
+print(df_ge.head(5))
+
+df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)   #split the data into a traing set and validation set (kind of retarded because the most recent data becomes test set aka braindead)
 print("Train--Test size", len(df_train), len(df_test))
 
 # scale the feature MinMax, build array
