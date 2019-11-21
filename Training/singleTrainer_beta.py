@@ -1,5 +1,3 @@
-#Verifying the ability to function with reversed data
-
 import numpy as np
 import os
 import sys
@@ -25,6 +23,7 @@ TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
 DATA_PATH = "data//GE.csv"
 symbol = "GE"
+isAscending = False
 
 def print_time(text, stime):
     seconds = (time.time()-stime)
@@ -64,25 +63,21 @@ def build_timeseries(mat, y_col_index):
     #print("length of time-series i/o",x.shape,y.shape)
     return x, y
 
-
 stime = time.time()
 df_ge = pd.read_csv(DATA_PATH, engine='python')    #read the csv file into a pandas dataset
 
-print(df_ge.shape)
-print(df_ge.columns)
 print(df_ge.head(5))
-print(df_ge.dtypes)
 
-print("\n########After Reversal########\n")
+if (isAscending==False):
+    print("\n########After Reversal########\n")
+    df_ge = df_ge.iloc[::-1]
+    print(df_ge.head(5))
 
-df_ge = df_ge.iloc[::-1]
-print(df_ge.head(5))
 
 df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)   #split the data into a traing set and validation set (kind of retarded because the most recent data becomes test set aka braindead)
 print("Train--Test size", len(df_train), len(df_test))
 
 # scale the feature MinMax, build array
-
 x = df_train.loc[:,train_cols].values   #grabs the data only(no headers) specified in train_cols
 min_max_scaler = MinMaxScaler()
 x_train = min_max_scaler.fit_transform(x)   #Scale the training set and determine the scaling factors
