@@ -136,6 +136,10 @@ optimizer = keras.optimizers.RMSprop(lr=params["lr"])
 lstm_model.compile(loss='mean_squared_error', optimizer=optimizer)
 
 mcp = keras.callbacks.ModelCheckpoint(os.path.join(OUTPUT_PATH, MODEL_NAME+".{epoch:02d}-{val_loss:.5f}.hdf5"), monitor='val_loss', verbose=2, save_best_only=False, save_weights_only=False, mode='auto', period=10)
-csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"\\"+MODEL_NAME+".log", append=True)
+csv_logger=None
+if platform.system()=="Windows":
+    csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"\\"+MODEL_NAME+".log", append=True)
+else:
+    csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"/"+MODEL_NAME+".log", append=True)
 
 lstm_model.fit(x_t, y_t, epochs=params["epochs"], verbose=2, batch_size=BATCH_SIZE,shuffle=False, validation_data=(trim_dataset(x_val, BATCH_SIZE), trim_dataset(y_val, BATCH_SIZE)), callbacks=[mcp,csv_logger])
