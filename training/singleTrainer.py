@@ -1,4 +1,5 @@
 import numpy as np
+import platform
 import os
 import sys
 import time
@@ -13,16 +14,17 @@ from sklearn.metrics import mean_squared_error
 
 params = {
     "batch_size": 256,
-    "epochs": 1000,
+    "epochs": 10000,
     "lr": 0.00010000,
     "time_steps": 60
 }
 
-train_cols = ['Open','High','Low','Close','Volume']
+train_cols = ['open','high','low','close','volume']
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
-DATA_PATH = "geData.csv"
+DATA_PATH = "../data/GE.csv"
 symbol = "GE"
+isAscending = False
 
 def print_time(text, stime):
     seconds = (time.time()-stime)
@@ -32,7 +34,11 @@ def print_time(text, stime):
 def trim_dataset(mat,batch_size):
     no_of_rows_drop = mat.shape[0]%batch_size   #determine how many extra rows you have that don't fit into a multiple of batch
     if no_of_rows_drop > 0:
-        return mat[:-no_of_rows_drop]   #cut that bitch off
+        print("Rows to drop: "+ str(no_of_rows_drop))
+        tempMat = mat[:-no_of_rows_drop]        #cuts off last rows, so it should work (the most recent data is cut off so should be fixed)
+        print("Mat shape after cut: " + str(tempMat.shape[0]))
+        return tempMat
+        #return mat[:-no_of_rows_drop]   #cut that bitch off
     else:
         return mat
 
@@ -58,20 +64,21 @@ def build_timeseries(mat, y_col_index):
     #print("length of time-series i/o",x.shape,y.shape)
     return x, y
 
-
 stime = time.time()
 df_ge = pd.read_csv(DATA_PATH, engine='python')    #read the csv file into a pandas dataset
 
-print(df_ge.shape)
-print(df_ge.columns)
 print(df_ge.head(5))
-print(df_ge.dtypes)
 
-df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)   #split the data into a traing set and validation set (kind of retarded because chops off the most recent data aka braindead)
+if (isAscending==False):
+    print("\n########After Reversal########\n")
+    df_ge = df_ge.iloc[::-1]
+    print(df_ge.head(5))
+
+
+df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)   #split the data into a traing set and validation set (kind of retarded because the most recent data becomes test set aka braindead)
 print("Train--Test size", len(df_train), len(df_test))
 
 # scale the feature MinMax, build array
-
 x = df_train.loc[:,train_cols].values   #grabs the data only(no headers) specified in train_cols
 min_max_scaler = MinMaxScaler()
 x_train = min_max_scaler.fit_transform(x)   #Scale the training set and determine the scaling factors
@@ -101,10 +108,15 @@ layer_1_neurons = 500
 layer_2_dropout = 0.3
 layer_3_neurons = 500
 layer_4_dropout = 0.4
-layer_5_denseNeurons = 20
+layer_5_denseNeurons = 100
 
 MODEL_NAME = symbol+"_Model_B" + str(params["batch_size"]) + "_T" + str(params["time_steps"])+ "_L1N" + str(layer_1_neurons) + "_L2D" + str(layer_2_dropout) + "_L3N" + str(layer_3_neurons) + "_L4D" + str(layer_4_dropout)
-OUTPUT_PATH = symbol+"models\\" + MODEL_NAME
+OUTPUT_PATH=None
+if platform.system()=="Windows":
+    OUTPUT_PATH = symbol+"models\\" + MODEL_NAME
+else:
+    OUTPUT_PATH = symbol+"models/" + MODEL_NAME
+
 
 if not os.path.exists(OUTPUT_PATH):
     os.makedirs(OUTPUT_PATH)
@@ -124,6 +136,10 @@ optimizer = keras.optimizers.RMSprop(lr=params["lr"])
 lstm_model.compile(loss='mean_squared_error', optimizer=optimizer)
 
 mcp = keras.callbacks.ModelCheckpoint(os.path.join(OUTPUT_PATH, MODEL_NAME+".{epoch:02d}-{val_loss:.5f}.hdf5"), monitor='val_loss', verbose=2, save_best_only=False, save_weights_only=False, mode='auto', period=10)
-csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"\\"+MODEL_NAME+".log", append=True)
+csv_logger=None
+if platform.system()=="Windows":
+    csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"\\"+MODEL_NAME+".log", append=True)
+else:
+    csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"/"+MODEL_NAME+".log", append=True)
 
 lstm_model.fit(x_t, y_t, epochs=params["epochs"], verbose=2, batch_size=BATCH_SIZE,shuffle=False, validation_data=(trim_dataset(x_val, BATCH_SIZE), trim_dataset(y_val, BATCH_SIZE)), callbacks=[mcp,csv_logger])
