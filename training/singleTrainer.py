@@ -22,9 +22,15 @@ params = {
 train_cols = ['open','high','low','close','volume']
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
-DATA_PATH = "../data/GE.csv"
+DATA_PATH = "data\\GE.csv"
 symbol = "GE"
 isAscending = False
+
+layer_1_neurons = 500
+layer_2_dropout = 0.3
+layer_3_neurons = 500
+layer_4_dropout = 0.4
+layer_5_denseNeurons = 100
 
 def print_time(text, stime):
     seconds = (time.time()-stime)
@@ -103,12 +109,6 @@ x_val, x_test_t = np.split(trim_dataset(x_temp, BATCH_SIZE),2)
 y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
 
 print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
-
-layer_1_neurons = 500
-layer_2_dropout = 0.3
-layer_3_neurons = 500
-layer_4_dropout = 0.4
-layer_5_denseNeurons = 100
 
 MODEL_NAME = symbol+"_Model_B" + str(params["batch_size"]) + "_T" + str(params["time_steps"])+ "_L1N" + str(layer_1_neurons) + "_L2D" + str(layer_2_dropout) + "_L3N" + str(layer_3_neurons) + "_L4D" + str(layer_4_dropout)
 OUTPUT_PATH=None
