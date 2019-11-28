@@ -21,11 +21,12 @@ params = {
     "time_steps": 60
 }
 
-INPUT_LOG_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.log"
-DATA_FILE = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\data\\GE.csv"
-MODEL_PATH = "C:\\Users\\Chinmaya Joshi\\Downloads\\ml Project\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.500-0.00008.hdf5"
+INPUT_LOG_PATH = "C:\\Users\\Chinmaya Joshi\\Documents\\workspace\\swinger\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.log"
+DATA_FILE = "data\\GE.csv"
+MODEL_PATH = "C:\\Users\\Chinmaya Joshi\\Documents\\workspace\\swinger\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.500-0.00007.hdf5"
+isAscending = False
 
-train_cols = ['open','high','low','close','volume']
+train_cols = ['open','high','low','close','adjusted_close','volume','dividend_amount','split_coefficient','RSI','SMA','EMA','Real Lower Band','Real Middle Band','Real Upper Band']
 
 
 TIME_STEPS = params["time_steps"]
@@ -89,9 +90,12 @@ def build_timeseries(mat, y_col_index):
 
 stime = time.time()
 df_ge = pd.read_csv(DATA_FILE, engine='python')
-print(df_ge.shape)
-print(df_ge.columns)
 print(df_ge.head(5))
+
+if (isAscending==False):
+    print("\n########After Reversal########\n")
+    df_ge = df_ge.iloc[::-1]
+    print(df_ge.head(5))
 
 #df_ge = process_dataframe(df_ge)
 print(df_ge.dtypes)

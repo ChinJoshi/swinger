@@ -19,4 +19,3 @@ if isAscending == False:
 pyplot.figure()
 pyplot.plot(geData)
 pyplot.show()
-
