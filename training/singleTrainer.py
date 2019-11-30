@@ -4,34 +4,20 @@ import os
 import sys
 import time
 import pandas as pd 
-import glob
 import tensorflow
 from tensorflow import keras
-import multiprocessing
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
+import argparse
+import json
 
-params = {
-    "batch_size": 256,
-    "epochs": 10000,
-    "lr": 0.00010000,
-    "time_steps": 60
-}
-
-train_cols = ['open','high','low','close','adjusted_close','volume','dividend_amount','split_coefficient','RSI','SMA','EMA','Real Lower Band','Real Middle Band','Real Upper Band']
-TIME_STEPS = params["time_steps"]
-BATCH_SIZE = params["batch_size"]
-DATA_PATH = "../data/GE.csv"
-symbol = "GE"
-isAscending = False
-
-layer_1_neurons = 500
-layer_2_dropout = 0.3
-layer_3_neurons = 500
-layer_4_dropout = 0.4
-layer_5_denseNeurons = 20
+parser = argparse.ArgumentParser()
+parser.add_argument("-c","--config", help="config file",required=True,type=str)
+args = parser.parse_args()
+config_file = open(args.config)
+config = json.load(config_file)
 
 def print_time(text, stime):
     seconds = (time.time()-stime)
@@ -60,36 +46,44 @@ def build_timeseries(mat, y_col_index):
     to LSTM.
     """
     # total number of time-series samples would be len(mat) - TIME_STEPS
-    dim_0 = mat.shape[0] - TIME_STEPS   #determine number of inputs that have an output because you'll not have data timesteps forward once your index goes past len(mat.shape[0]) - TIME_STEPS
+    dim_0 = mat.shape[0] - config["params"]["input_points"]   #determine number of inputs that have an output because you'll not have data timesteps forward once your index goes past len(mat.shape[0]) - TIME_STEPS
     dim_1 = mat.shape[1]    #number of columns in dataset
-    x = np.zeros((dim_0, TIME_STEPS, dim_1))    #create an array with dimensions of viable inputs, the time step, the cols in the dataset
+    x = np.zeros((dim_0, config["params"]["input_points"], dim_1))    #create an array with dimensions of viable inputs, the time step, the cols in the dataset
     y = np.zeros((dim_0,))  #create an output array to correspond to input array
 
     for i in range(dim_0):  #for each viable input
-        x[i] = mat[i:TIME_STEPS+i]  #set the input array to a set of data the length of a timestep
-        y[i] = mat[TIME_STEPS+i, y_col_index]   #set output array that correalates with inout array to that data located in the y_col_index of the data
+        x[i] = mat[i:config["params"]["input_points"]+i]  #set the input array to a set of data the length of a timestep
+        y[i] = mat[config["params"]["input_points"]+i, y_col_index]   #set output array that correalates with inout array to that data located in the y_col_index of the data
     #print("length of time-series i/o",x.shape,y.shape)
     return x, y
 
 stime = time.time()
-df_ge = pd.read_csv(DATA_PATH, engine='python')    #read the csv file into a pandas dataset
+df_ge = pd.read_csv(config["input_data"]["file_path"], engine='python')    #read the csv file into a pandas dataset
 
 print(df_ge.head(5))
 
-if (isAscending==False):
+if (config["input_data"]["order"]=="descending"):
     print("\n########After Reversal########\n")
     df_ge = df_ge.iloc[::-1]
     print(df_ge.head(5))
+elif (config["input_data"]["order"]=="ascending"):
+    print("no reversal necessary")
+else:
+    print("Invalid data order specified in config file! Exiting!")
+    quit()
 
 
 df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)   #split the data into a traing set and validation set (kind of retarded because the most recent data becomes test set aka braindead)
 print("Train--Test size", len(df_train), len(df_test))
 
+
+
+
 # scale the feature MinMax, build array
-x = df_train.loc[:,train_cols].values   #grabs the data only(no headers) specified in train_cols
+x = df_train.loc[:,config["input_data"]["ingested_data_headers"]].values   #grabs the data only(no headers) specified in train_cols
 min_max_scaler = MinMaxScaler()
 x_train = min_max_scaler.fit_transform(x)   #Scale the training set and determine the scaling factors
-x_test = min_max_scaler.transform(df_test.loc[:,train_cols])    #Scale the the validation set using the precalculated scale factor
+x_test = min_max_scaler.transform(df_test.loc[:,config["input_data"]["ingested_data_headers"]])    #Scale the the validation set using the precalculated scale factor
 print(x_train[0])
 print("Deleting unused dataframes of total size(KB)",(sys.getsizeof(df_ge)+sys.getsizeof(df_train)+sys.getsizeof(df_test))//1024)
 
@@ -102,24 +96,32 @@ print("Are any NaNs present in train/test matrices?",np.isnan(x_train).any(), np
 
 
 x_t, y_t = build_timeseries(x_train, 3) #Build training dataset with valid points(those who have 60 days preceeding them)
-x_t = trim_dataset(x_t, BATCH_SIZE) #Make input data fit in the batch size
-y_t = trim_dataset(y_t, BATCH_SIZE) #Make output data fit in the batch size
+x_t = trim_dataset(x_t, config["params"]["batch_size"]) #Make input data fit in the batch size
+y_t = trim_dataset(y_t, config["params"]["batch_size"]) #Make output data fit in the batch size
 print("Batch trimmed size",x_t.shape, y_t.shape)
 
-x_temp, y_temp = build_timeseries(x_test, 3)    #Build validation dataset
-x_val, x_test_t = np.split(trim_dataset(x_temp, BATCH_SIZE),2)      #split validation set further into 2 pieces,  evaluation set and test set (makes no sense)   
-y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)      #split validation set further into 2 pieces,  evaluation set and test set (makes no sense)
+x_temp, y_temp = build_timeseries(x_test, config["input_data"]["output_header_index"])    #Build validation dataset
+x_val, x_test_t = np.split(trim_dataset(x_temp, config["params"]["batch_size"]),2)      #split validation set further into 2 pieces,  evaluation set and test set (makes no sense)   
+y_val, y_test_t = np.split(trim_dataset(y_temp, config["params"]["batch_size"]),2)      #split validation set further into 2 pieces,  evaluation set and test set (makes no sense)
 
 print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
 
-MODEL_NAME = symbol+"_Model_B" + str(params["batch_size"]) + "_T" + str(params["time_steps"])+ "_L1N" + str(layer_1_neurons) + "_L2D" + str(layer_2_dropout) + "_L3N" + str(layer_3_neurons) + "_L4D" + str(layer_4_dropout)
+#MODEL_NAME = symbol+"_Model_B" + str(config["params"]["batch_size"]) + "_T" + str(config["params"]["input_points"])+ "_L1N" + str(layer_1_neurons) + "_L2D" + str(layer_2_dropout) + "_L3N" + str(layer_3_neurons) + "_L4D" + str(layer_4_dropout)
+
+MODEL_NAME = config["input_data"]["symbol"]
+
+for layer in config["arch"]:
+    MODEL_NAME = MODEL_NAME + "_" + layer["layer"] 
+    if layer["layer"]!="dropout":
+        MODEL_NAME= MODEL_NAME + "_" + str(layer["neurons"])
+    elif layer["layer"]=="dropout":
+        MODEL_NAME= MODEL_NAME + "_" + str(layer["value"])
 
 OUTPUT_PATH=None
 if platform.system()=="Windows":
-    OUTPUT_PATH = symbol+"models\\" + MODEL_NAME
+    OUTPUT_PATH = "..\\models\\"+config["input_data"]["symbol"]+"models\\" + MODEL_NAME
 else:
-    OUTPUT_PATH = "../models/"symbol+"models/" + MODEL_NAME
-
+    OUTPUT_PATH = "../models/"+config["input_data"]["symbol"]+"models/" + MODEL_NAME
 
 if not os.path.exists(OUTPUT_PATH):
     os.makedirs(OUTPUT_PATH)
@@ -127,15 +129,32 @@ else:
     print("Output directory exists,exiting to prevent overwriting")
     quit()
 
-lstm_model = keras.Sequential()
-lstm_model.add(keras.layers.CuDNNLSTM(layer_1_neurons, batch_input_shape=(BATCH_SIZE, TIME_STEPS, x_t.shape[2]), stateful=True, return_sequences=True, kernel_initializer='random_uniform'))
-lstm_model.add(keras.layers.Dropout(layer_2_dropout))
-lstm_model.add(keras.layers.CuDNNLSTM(layer_3_neurons))
-lstm_model.add(keras.layers.Dropout(layer_4_dropout))
-lstm_model.add(keras.layers.Dense(layer_5_denseNeurons,activation='relu'))
-lstm_model.add(keras.layers.Dense(1,activation='sigmoid'))
 
-optimizer = keras.optimizers.RMSprop(lr=params["lr"])
+lstm_model = keras.Sequential()
+for index,layer in enumerate(config["arch"]):
+    if(index==0):
+        lstm_model.add(keras.layers.CuDNNLSTM(layer["neurons"], batch_input_shape=(config["params"]["batch_size"], config["params"]["input_points"], x_t.shape[2]), stateful=True, return_sequences=True, kernel_initializer='random_uniform'))
+        print("added initial lstm layer")
+    elif layer["layer"]=="dropout":
+        lstm_model.add(keras.layers.Dropout(layer["value"]))
+        print("added dropout layer")
+    elif layer["layer"]=="lstm":               
+        j = 1
+        while True:
+            if(j==(len(config["arch"])-index)):
+                lstm_model.add(keras.layers.CuDNNLSTM(layer["neurons"]))
+                print("added lstm layer")
+                break
+            elif(config["arch"][index+j]["layer"]=="lstm"):
+                lstm_model.add(keras.layers.CuDNNLSTM(layer["neurons"],return_sequences=True))
+                print("added lstm layer with return sequences")
+                break
+            j=j+1
+    elif layer["layer"]=="dense":
+        lstm_model.add(keras.layers.Dense(layer["neurons"],activation=layer["activation"]))
+        print("added dense layer")
+
+optimizer = keras.optimizers.RMSprop(lr=config["params"]["learning_rate"])
 lstm_model.compile(loss='mean_squared_error', optimizer=optimizer)
 
 mcp = keras.callbacks.ModelCheckpoint(os.path.join(OUTPUT_PATH, MODEL_NAME+".{epoch:02d}-{val_loss:.5f}.hdf5"), monitor='val_loss', verbose=2, save_best_only=False, save_weights_only=False, mode='auto', period=10)
@@ -145,20 +164,17 @@ if platform.system()=="Windows":
 else:
     csv_logger = keras.callbacks.CSVLogger(OUTPUT_PATH+"/"+MODEL_NAME+".log", append=True)
 
-lstm_model.fit(x_t, y_t, epochs=params["epochs"], verbose=2, batch_size=BATCH_SIZE,shuffle=False, validation_data=(trim_dataset(x_val, BATCH_SIZE), trim_dataset(y_val, BATCH_SIZE)), callbacks=[mcp,csv_logger])
+lstm_model.fit(x_t, y_t, epochs=config["params"]["epochs"], verbose=2, batch_size=config["params"]["batch_size"],shuffle=False, validation_data=(trim_dataset(x_val, config["params"]["batch_size"]), trim_dataset(y_val, config["params"]["batch_size"])), callbacks=[mcp,csv_logger])
 
-
-
-
-y_pred = lstm_model.predict(trim_dataset(x_test_t, BATCH_SIZE), batch_size=BATCH_SIZE)
+y_pred = lstm_model.predict(trim_dataset(x_test_t, config["params"]["batch_size"]), batch_size=config["params"]["batch_size"])
 y_pred = y_pred.flatten()
-y_test_t = trim_dataset(y_test_t, BATCH_SIZE)
+y_test_t = trim_dataset(y_test_t, config["params"]["batch_size"])
 error = mean_squared_error(y_test_t, y_pred)
 print("Error is", error, y_pred.shape, y_test_t.shape)
 print(y_pred[0:15])
 print(y_test_t[0:15])
-y_pred_org = (y_pred * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform(y_pred)
-y_test_t_org = (y_test_t * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform(y_test_t)
+y_pred_org = (y_pred * min_max_scaler.data_range_[config["input_data"]["output_header_index"]]) + min_max_scaler.data_min_[config["input_data"]["output_header_index"]] # min_max_scaler.inverse_transform(y_pred)
+y_test_t_org = (y_test_t * min_max_scaler.data_range_[config["input_data"]["output_header_index"]]) + min_max_scaler.data_min_[config["input_data"]["output_header_index"]] # min_max_scaler.inverse_transform(y_test_t)
 print(y_pred_org[0:15])
 print(y_test_t_org[0:15])
 
