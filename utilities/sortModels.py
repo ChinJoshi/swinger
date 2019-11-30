@@ -1,15 +1,20 @@
 import csv
+import platform
 import os
 from glob import glob
 
-INPUT_PATH = "E:\\GEModels"
+INPUT_PATH = "../models/GEmodels"
 isCSV = False
 symbol = "GE"
 
 subfolders = [f.path for f in os.scandir(INPUT_PATH) if f.is_dir() ]
 lossDict = []
 for folder in subfolders:
-    logFP = glob(folder+"\\*.log")
+    logFP = None
+    if platform.system()=="Windows":
+        logFP = glob(folder+"\\*.log")
+    else:
+        logFP = glob(folder+"/*.log")
     with open(logFP[0]) as logFile:
         fileContents = csv.reader(logFile, delimiter=',')
         valLoss = []
@@ -20,9 +25,11 @@ for folder in subfolders:
         lossDict.append([valLoss[0],logFP[0]])
 
 lossDict.sort()
-
-csvfile = open(symbol+"modelSort.csv","w",newline='')
-csvwriter = csv.writer(csvfile,delimiter=",")
+csvfile=None
+csvwriter=None
+if isCSV:
+    csvfile = open(symbol+"modelSort.csv","w",newline='')
+    csvwriter = csv.writer(csvfile,delimiter=",")
 
 for row in lossDict:
     print(row)

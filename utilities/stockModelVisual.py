@@ -21,7 +21,6 @@ params = {
     "time_steps": 60
 }
 
-INPUT_LOG_PATH = "C:\\Users\\Chinmaya Joshi\\Documents\\workspace\\swinger\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.log"
 DATA_FILE = "data\\GE.csv"
 MODEL_PATH = "C:\\Users\\Chinmaya Joshi\\Documents\\workspace\\swinger\\GEmodels\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4\\GE_Model_B256_T60_L1N100_L2D0.3_L3N100_L4D0.4.500-0.00007.hdf5"
 isAscending = False
@@ -129,24 +128,6 @@ y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
 print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
 
 model = keras.models.load_model(MODEL_PATH) 
-# model.evaluate(x_test_t, y_test_t, batch_size=BATCH_SIZE
-y_pred = model.predict(trim_dataset(x_test_t, BATCH_SIZE), batch_size=BATCH_SIZE)
-y_pred = y_pred.flatten()
-y_test_t = trim_dataset(y_test_t, BATCH_SIZE)
-error = mean_squared_error(y_test_t, y_pred)
-print("Error is", error, y_pred.shape, y_test_t.shape)
-print(y_pred[0:15])
-print(y_test_t[0:15])
-
-# convert the predicted value to range of real data
-y_pred_org = (y_pred * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3]
-# min_max_scaler.inverse_transform(y_pred)
-y_test_t_org = (y_test_t * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3]
-# min_max_scaler.inverse_transform(y_test_t)
-print(y_pred_org[0:15])
-print(y_test_t_org[0:15])
-
-
 
 y_pred = model.predict(trim_dataset(x_test_t, BATCH_SIZE), batch_size=BATCH_SIZE)
 y_pred = y_pred.flatten()

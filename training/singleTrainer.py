@@ -13,10 +13,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
 
-
 params = {
     "batch_size": 256,
-    "epochs": 250,
+    "epochs": 10000,
     "lr": 0.00010000,
     "time_steps": 60
 }
@@ -24,15 +23,15 @@ params = {
 train_cols = ['open','high','low','close','adjusted_close','volume','dividend_amount','split_coefficient','RSI','SMA','EMA','Real Lower Band','Real Middle Band','Real Upper Band']
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
-DATA_PATH = "data\\GE.csv"
+DATA_PATH = "../data/GE.csv"
 symbol = "GE"
 isAscending = False
 
-layer_1_neurons = 100
+layer_1_neurons = 500
 layer_2_dropout = 0.3
-layer_3_neurons = 100
+layer_3_neurons = 500
 layer_4_dropout = 0.4
-layer_5_denseNeurons = 100
+layer_5_denseNeurons = 20
 
 def print_time(text, stime):
     seconds = (time.time()-stime)
@@ -119,7 +118,7 @@ OUTPUT_PATH=None
 if platform.system()=="Windows":
     OUTPUT_PATH = symbol+"models\\" + MODEL_NAME
 else:
-    OUTPUT_PATH = symbol+"models/" + MODEL_NAME
+    OUTPUT_PATH = "../models/"symbol+"models/" + MODEL_NAME
 
 
 if not os.path.exists(OUTPUT_PATH):

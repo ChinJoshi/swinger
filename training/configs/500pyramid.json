@@ -1,0 +1,33 @@
+{
+"params":{
+	"batch_size": 256,
+	"epochs": 10000,
+	"learning_rate": 0.0001,
+	"input_points": 60
+},
+
+"input_data": {
+	"file_path": "../data/GE.csv",
+	"symbol":"GE",
+	"ingested_data_headers": ["open","high","low","close","adjusted_close","volume","dividend_amount","split_coefficient","RSI","SMA","EMA","Real Lower Band","Real Middle Band","Real Upper Band"],
+	"output_header_index": 3,
+	"order": "descending"
+},
+
+"arch": [
+	{"layer":"lstm", "neurons": 500},
+	{"layer":"dropout", "value": 0.3},
+	{"layer":"lstm", "neurons": 400},
+	{"layer":"dropout", "value": 0.3},
+	{"layer":"lstm", "neurons": 300},
+	{"layer":"dropout", "value": 0.3},
+	{"layer":"lstm", "neurons": 200},
+	{"layer":"dropout", "value": 0.3},
+	{"layer":"lstm", "neurons": 100},
+	{"layer":"dropout", "value": 0.3},
+	{"layer":"lstm", "neurons": 100},
+	{"layer":"dropout", "value": 0.3},
+	{"layer":"dense", "neurons": 100, "activation": "relu"},
+	{"layer":"dense", "neurons": 1, "activation": "sigmoid"}
+]
+}
